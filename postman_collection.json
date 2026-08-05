@@ -1,0 +1,444 @@
+{
+	"info": {
+		"_postman_id": "driver-api-collection-v5",
+		"name": "driveR API - Full Ecosystem (Modules 1, 2, 3 - Phase 2 & 3 Complete)",
+		"description": "Bộ API test đầy đủ nhất dự án driveR: Auth, Hierarchy, Multi-Cloud Tiers, Move/Copy, Share Link, Trash CronJob, Preview Inline & Analytics",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5000",
+			"type": "string"
+		},
+		{
+			"key": "accessToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "fileId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "folderId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "shareToken",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Module 1: Authentication",
+			"item": [
+				{
+					"name": "1. Đăng ký tài khoản (Register)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user1@driver.com\",\n  \"password\": \"password123\",\n  \"fullName\": \"Nguyễn Văn A\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "register"]
+						}
+					}
+				},
+				{
+					"name": "2. Đăng nhập (Login)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"var resData = jsonData.data || jsonData;",
+									"if (resData.accessToken) {",
+									"    pm.collectionVariables.set('accessToken', resData.accessToken);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user1@driver.com\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "3. Profile & Quota (Get Profile)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "me"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Module 2: Folders & Files Hierarchy Operations",
+			"item": [
+				{
+					"name": "1. Tạo Thư mục Gốc (Create Root Folder)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"var resData = jsonData.data || jsonData;",
+									"var targetId = resData.id || (resData.file && resData.file.id);",
+									"if (targetId) {",
+									"    pm.collectionVariables.set('folderId', targetId);",
+									"    pm.collectionVariables.set('fileId', targetId);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Dự án driveR App\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/folders",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "folders"]
+						}
+					}
+				},
+				{
+					"name": "2. Lấy Danh sách + Breadcrumb (Get Files & Folders)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/files?tab=my-drive",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "files"],
+							"query": [
+								{ "key": "tab", "value": "my-drive" },
+								{ "key": "folderId", "value": "{{folderId}}", "disabled": true }
+							]
+						}
+					}
+				},
+				{
+					"name": "3. Đổi tên (Rename)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Dự án driveR App (Đã đổi tên)\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/files/{{fileId}}/rename",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "files", "{{fileId}}", "rename"]
+						}
+					}
+				},
+				{
+					"name": "4. Di chuyển (Move Item)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"targetParentId\": null\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/files/{{fileId}}/move",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "files", "{{fileId}}", "move"]
+						}
+					}
+				},
+				{
+					"name": "5. Sao chép (Copy Item)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"targetParentId\": null\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/files/{{fileId}}/copy",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "files", "{{fileId}}", "copy"]
+						}
+					}
+				},
+				{
+					"name": "6. Đánh dấu Sao (Toggle Star)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/files/{{fileId}}/star",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "files", "{{fileId}}", "star"]
+						}
+					}
+				},
+				{
+					"name": "7. Chuyển vào thùng rác (Move to Trash)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/files/{{fileId}}/trash",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "files", "{{fileId}}", "trash"]
+						}
+					}
+				},
+				{
+					"name": "8. Khôi phục từ thùng rác (Restore from Trash)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/files/{{fileId}}/restore",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "files", "{{fileId}}", "restore"]
+						}
+					}
+				},
+				{
+					"name": "9. Xóa vĩnh viễn 1 File/Folder (Permanent Delete)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/files/{{fileId}}/permanent",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "files", "{{fileId}}", "permanent"]
+						}
+					}
+				},
+				{
+					"name": "10. Dọn sạch Thùng rác (Empty Trash)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/files/trash/empty",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "files", "trash", "empty"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Module 3: Sharing, Preview & Storage Analytics",
+			"item": [
+				{
+					"name": "1. Tạo Public Share Link (Create Share Link)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"var resData = jsonData.data || jsonData;",
+									"if (resData.shareToken) {",
+									"    pm.collectionVariables.set('shareToken', resData.shareToken);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"accessLevel\": \"PUBLIC\",\n  \"role\": \"VIEWER\",\n  \"expiresInDays\": 7\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/files/{{fileId}}/share",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "files", "{{fileId}}", "share"]
+						}
+					}
+				},
+				{
+					"name": "2. Truy cập File Công Khai qua Token (Public Share Link Access)",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/shares/{{shareToken}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "shares", "{{shareToken}}"]
+						}
+					}
+				},
+				{
+					"name": "3. Lấy Link Presigned Preview Inline (Media & PDF)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/files/{{fileId}}/preview-url",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "files", "{{fileId}}", "preview-url"]
+						}
+					}
+				},
+				{
+					"name": "4. Thống kê Phân bổ Dung lượng (Storage Analytics)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/files/analytics",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "files", "analytics"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Module 4: Multi-Cloud Storage Upload/Download",
+			"item": [
+				{
+					"name": "1. Xin Presigned Upload URL (Tự động Routing Tier)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Ke_hoach_phat_trien.pdf\",\n  \"sizeBytes\": 3450000,\n  \"mimeType\": \"application/pdf\",\n  \"parentId\": null\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/files/upload-url",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "files", "upload-url"]
+						}
+					}
+				},
+				{
+					"name": "2. Xác nhận Upload & Cộng Quota (Confirm Upload)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"var resData = jsonData.data || jsonData;",
+									"var fileObj = resData.file || resData;",
+									"if (fileObj && fileObj.id) {",
+									"    pm.collectionVariables.set('fileId', fileObj.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Ke_hoach_phat_trien.pdf\",\n  \"sizeBytes\": 3450000,\n  \"mimeType\": \"application/pdf\",\n  \"storageKey\": \"uploads/user1/uuid_Ke_hoach_phat_trien.pdf\",\n  \"storageProvider\": \"cloudflare_r2\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/files/confirm-upload",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "files", "confirm-upload"]
+						}
+					}
+				},
+				{
+					"name": "3. Lấy Link Presigned Download URL",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/files/{{fileId}}/download-url",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "files", "{{fileId}}", "download-url"]
+						}
+					}
+				}
+			]
+		}
+	]
+}
