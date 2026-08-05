@@ -1,0 +1,10 @@
+{
+    "output": {
+        "filePath": "context-backend.xml",
+        "style": "xml"
+    },
+    "include": [
+        "src/**/*",
+        "../.ai/**/*"
+    ]
+}
