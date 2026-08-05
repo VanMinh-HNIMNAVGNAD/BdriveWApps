@@ -44,7 +44,7 @@ lerna-debug.log*
 .env.production.local
 .env.local
 context-backend.xml
-./src/auth/strategies
+
 #config google 
 /config
 /google-service-account.json
